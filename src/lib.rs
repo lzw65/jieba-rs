@@ -194,6 +194,8 @@ pub struct Token<'a> {
     pub byte_start: usize,
     /// index of the last byte of the token
     pub byte_end: usize,
+    /// whether is the last token
+    pub is_last_token: bool
 }
 
 /// A tagged word
@@ -709,21 +711,22 @@ impl Jieba {
         let mut byte_index: usize = 0;
         match mode {
             TokenizeMode::Default => {
-                for word in words {
+                for (index, word) in words.iter().enumerate() {
                     let width = word.chars().count();
                     tokens.push(Token {
                         word,
                         start,
                         end: start + width,
                         byte_start: byte_index,
-                        byte_end: byte_index + word.len()
+                        byte_end: byte_index + word.len(),
+                        is_last_token: index == words.len() - 1
                     });
                     start += width;
                     byte_index += word.len();
                 }
             }
             TokenizeMode::Search => {
-                for word in words {
+                for (index, word) in words.iter().enumerate() {
                     let width = word.chars().count();
                     if width > 2 {
                         let char_indices: Vec<usize> = word.char_indices().map(|x| x.0).collect();
@@ -740,7 +743,8 @@ impl Jieba {
                                     start: start + i,
                                     end: start + i + 2,
                                     byte_start: byte_index + byte_start,
-                                    byte_end: byte_index + byte_start + gram2.len()
+                                    byte_end: byte_index + byte_start + gram2.len(),
+                                    is_last_token: false
                                 });
                             }
                         }
@@ -758,7 +762,8 @@ impl Jieba {
                                         start: start + i,
                                         end: start + i + 3,
                                         byte_start: byte_index + byte_start,
-                                        byte_end: byte_index + byte_start + gram3.len()
+                                        byte_end: byte_index + byte_start + gram3.len(),
+                                        is_last_token: false
                                     });
                                 }
                             }
@@ -769,7 +774,8 @@ impl Jieba {
                         start,
                         end: start + width,
                         byte_start: byte_index,
-                        byte_end: byte_index + word.len()
+                        byte_end: byte_index + word.len(),
+                        is_last_token: index == words.len() - 1
                     });
                     start += width;
                     byte_index += word.len();
@@ -1103,14 +1109,16 @@ mod tests {
                     start: 0,
                     end: 3,
                     byte_start: 0,
-                    byte_end: 9
+                    byte_end: 9,
+                    is_last_token:false
                 },
                 Token {
                     word: "长江大桥",
                     start: 3,
                     end: 7,
                     byte_start: 9,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:true
                 }
             ]
         );
@@ -1124,42 +1132,48 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "京市",
                     start: 1,
                     end: 3,
                     byte_start: 3,
-                    byte_end: 9
+                    byte_end: 9,
+                    is_last_token:false
                 },
                 Token {
                     word: "南京市",
                     start: 0,
                     end: 3,
                     byte_start: 0,
-                    byte_end: 9
+                    byte_end: 9,
+                    is_last_token:false
                 },
                 Token {
                     word: "长江",
                     start: 3,
                     end: 5,
                     byte_start: 9,
-                    byte_end: 15
+                    byte_end: 15,
+                    is_last_token:false
                 },
                 Token {
                     word: "大桥",
                     start: 5,
                     end: 7,
                     byte_start: 15,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:false
                 },
                 Token {
                     word: "长江大桥",
                     start: 3,
                     end: 7,
                     byte_start: 9,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:true
                 }
             ]
         );
@@ -1173,42 +1187,48 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "中",
                     start: 2,
                     end: 3,
                     byte_start: 6,
-                    byte_end: 9
+                    byte_end: 9,
+                    is_last_token:false
                 },
                 Token {
                     word: "出",
                     start: 3,
                     end: 4,
                     byte_start: 9,
-                    byte_end: 12
+                    byte_end: 12,
+                    is_last_token:false
                 },
                 Token {
                     word: "了",
                     start: 4,
                     end: 5,
                     byte_start: 12,
-                    byte_end: 15
+                    byte_end: 15,
+                    is_last_token:false
                 },
                 Token {
                     word: "一个",
                     start: 5,
                     end: 7,
                     byte_start: 15,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:false
                 },
                 Token {
                     word: "叛徒",
                     start: 7,
                     end: 9,
                     byte_start: 21,
-                    byte_end: 27
+                    byte_end: 27,
+                    is_last_token:true
                 }
             ]
         );
@@ -1221,35 +1241,40 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "中出",
                     start: 2,
                     end: 4,
                     byte_start: 6,
-                    byte_end: 12
+                    byte_end: 12,
+                    is_last_token:false
                 },
                 Token {
                     word: "了",
                     start: 4,
                     end: 5,
                     byte_start: 12,
-                    byte_end: 15
+                    byte_end: 15,
+                    is_last_token:false
                 },
                 Token {
                     word: "一个",
                     start: 5,
                     end: 7,
                     byte_start: 15,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:false
                 },
                 Token {
                     word: "叛徒",
                     start: 7,
                     end: 9,
                     byte_start: 21,
-                    byte_end: 27
+                    byte_end: 27,
+                    is_last_token:true
                 }
             ]
         );
@@ -1263,28 +1288,32 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "服装",
                     start: 2,
                     end: 4,
                     byte_start: 6,
-                    byte_end: 12
+                    byte_end: 12,
+                    is_last_token:false
                 },
                 Token {
                     word: "饰品",
                     start: 4,
                     end: 6,
                     byte_start: 12,
-                    byte_end: 18
+                    byte_end: 18,
+                    is_last_token:false
                 },
                 Token {
                     word: "有限公司",
                     start: 6,
                     end: 10,
                     byte_start: 18,
-                    byte_end: 30
+                    byte_end: 30,
+                    is_last_token:true
                 }
             ]
         );
@@ -1302,42 +1331,48 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "中",
                     start: 2,
                     end: 3,
                     byte_start: 6,
-                    byte_end: 9
+                    byte_end: 9,
+                    is_last_token:false
                 },
                 Token {
                     word: "出",
                     start: 3,
                     end: 4,
                     byte_start: 9,
-                    byte_end: 12
+                    byte_end: 12,
+                    is_last_token:false
                 },
                 Token {
                     word: "了",
                     start: 4,
                     end: 5,
                     byte_start: 12,
-                    byte_end: 15
+                    byte_end: 15,
+                    is_last_token:false
                 },
                 Token {
                     word: "一个",
                     start: 5,
                     end: 7,
                     byte_start: 15,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:false
                 },
                 Token {
                     word: "叛徒",
                     start: 7,
                     end: 9,
                     byte_start: 21,
-                    byte_end: 27
+                    byte_end: 27,
+                    is_last_token:true
                 }
             ]
         );
@@ -1352,35 +1387,40 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "中出",
                     start: 2,
                     end: 4,
                     byte_start: 6,
-                    byte_end: 12
+                    byte_end: 12,
+                    is_last_token:false
                 },
                 Token {
                     word: "了",
                     start: 4,
                     end: 5,
                     byte_start: 12,
-                    byte_end: 15
+                    byte_end: 15,
+                    is_last_token:false
                 },
                 Token {
                     word: "一个",
                     start: 5,
                     end: 7,
                     byte_start: 15,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:false
                 },
                 Token {
                     word: "叛徒",
                     start: 7,
                     end: 9,
                     byte_start: 21,
-                    byte_end: 27
+                    byte_end: 27,
+                    is_last_token:true
                 }
             ]
         );
@@ -1398,35 +1438,40 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "中出",
                     start: 2,
                     end: 4,
                     byte_start: 6,
-                    byte_end: 12
+                    byte_end: 12,
+                    is_last_token:false
                 },
                 Token {
                     word: "了",
                     start: 4,
                     end: 5,
                     byte_start: 12,
-                    byte_end: 15
+                    byte_end: 15,
+                    is_last_token:false
                 },
                 Token {
                     word: "一个",
                     start: 5,
                     end: 7,
                     byte_start: 15,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:false
                 },
                 Token {
                     word: "叛徒",
                     start: 7,
                     end: 9,
                     byte_start: 21,
-                    byte_end: 27
+                    byte_end: 27,
+                    is_last_token:true
                 }
             ]
         );
@@ -1441,35 +1486,40 @@ mod tests {
                     start: 0,
                     end: 2,
                     byte_start: 0,
-                    byte_end: 6
+                    byte_end: 6,
+                    is_last_token:false
                 },
                 Token {
                     word: "中",
                     start: 2,
                     end: 3,
                     byte_start: 6,
-                    byte_end: 9
+                    byte_end: 9,
+                    is_last_token:false
                 },
                 Token {
                     word: "出了",
                     start: 3,
                     end: 5,
                     byte_start: 9,
-                    byte_end: 15
+                    byte_end: 15,
+                    is_last_token:false
                 },
                 Token {
                     word: "一个",
                     start: 5,
                     end: 7,
                     byte_start: 15,
-                    byte_end: 21
+                    byte_end: 21,
+                    is_last_token:false
                 },
                 Token {
                     word: "叛徒",
                     start: 7,
                     end: 9,
                     byte_start: 21,
-                    byte_end: 27
+                    byte_end: 27,
+                    is_last_token:true
                 }
             ]
         );
